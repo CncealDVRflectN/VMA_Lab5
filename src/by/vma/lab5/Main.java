@@ -53,6 +53,13 @@ public class Main {
             vector = new double[length];
         }
 
+        public Vector(Vector init) throws Exception {
+            this(init.getLength());
+            for (int i = 0; i < length; i++) {
+                this.vector[i] = init.vector[i];
+            }
+        }
+
         public int getLength() {
             return length;
         }
@@ -145,7 +152,7 @@ public class Main {
         fillBandG();
         nextX = g;
         do {
-            prevX = nextX;
+            prevX = new Vector(nextX);
             nextX = B.mul(prevX).add(g);
         } while (nextX.subtract(prevX).normI() > epsilon);
         return nextX;
