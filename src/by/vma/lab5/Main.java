@@ -6,12 +6,6 @@ public class Main {
         private int lines;
         private int columns;
 
-        public Matrix() {
-            this.lines = 0;
-            this.columns = 0;
-            this.matrix = null;
-        }
-
         public Matrix(int lines, int columns) throws Exception {
             if (lines < 1 || columns < 1) {
                 throw new Exception("Неверный размер.");
@@ -19,69 +13,6 @@ public class Main {
             this.lines = lines;
             this.columns = columns;
             this.matrix = new double[lines][columns];
-        }
-
-        public Matrix(Matrix init) throws Exception {
-            this(init.getLines(), init.getColumns());
-            for (int i = 0; i < lines; i++) {
-                for (int j = 0; j < columns; j++) {
-                    this.matrix[i][j] = init.matrix[i][j];
-                }
-            }
-        }
-
-        public int getLines() {
-            return lines;
-        }
-
-        public int getColumns() {
-            return columns;
-        }
-
-        public void setLine(int index, Vector line) throws Exception {
-            if (line.getLength() != columns) {
-                throw new Exception("Неверный вектор.");
-            }
-            for (int i = 0; i < columns; i++) {
-                matrix[index][i] = line.vector[i];
-            }
-        }
-
-        public void setColumn(int index, Vector column) throws Exception {
-            if (column.getLength() != lines) {
-                throw new Exception("Неверный вектор.");
-            }
-            for (int i = 0; i < lines; i++) {
-                matrix[i][index] = column.vector[i];
-            }
-        }
-
-        public void print() {
-            for (double[] i : matrix) {
-                for (double j : i) {
-                    System.out.printf("%.5f", j);
-                    System.out.print("  ");
-                }
-                System.out.println();
-            }
-        }
-
-        public void swap(int fi, int fj, int si, int sj) {
-            double tmp = matrix[fi][fj];
-            matrix[fi][fj] = matrix[si][sj];
-            matrix[si][sj] = tmp;
-        }
-
-        public void swapLines(int fline, int sline) {
-            for (int i = 0; i < columns; i++) {
-                swap(fline, i, sline, i);
-            }
-        }
-
-        public void swapColumns(int fcolumn, int scolumn) {
-            for (int i = 0; i < lines; i++) {
-                swap(i, fcolumn, i, scolumn);
-            }
         }
 
         public void fillDefault() {
@@ -93,36 +24,6 @@ public class Main {
             this.lines = 5;
             this.columns = 5;
             this.matrix = a;
-        }
-
-        public void fillE(int n) {
-            lines = n;
-            columns = n;
-            matrix = new double[n][n];
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < n; j++) {
-                    if (i == j) {
-                        matrix[i][j] = 1;
-                    } else {
-                        matrix[i][j] = 0;
-                    }
-                }
-            }
-        }
-
-        public double normI() {
-            double maxSum = -1;
-            double sum;
-            for (int i = 0; i < lines; i++) {
-                sum = 0;
-                for (int j = 0; j < columns; j++) {
-                    sum += Math.abs(matrix[i][j]);
-                }
-                if (sum > maxSum) {
-                    maxSum = sum;
-                }
-            }
-            return maxSum;
         }
 
         public Vector mul(Vector vector) throws Exception {
@@ -138,58 +39,11 @@ public class Main {
             }
             return result;
         }
-
-        public Matrix mul(Matrix mtr) throws Exception {
-            if (columns != mtr.getLines()) {
-                throw new Exception("Неверная матрица.");
-            }
-            Matrix result = new Matrix(lines, mtr.getColumns());
-            for (int i = 0; i < result.getLines(); i++) {
-                for (int j = 0; j < result.getColumns(); j++) {
-                    result.matrix[i][j] = 0;
-                    for (int k = 0; k < columns; k++) {
-                        result.matrix[i][j] += this.matrix[i][k] * mtr.matrix[k][j];
-                    }
-                }
-            }
-            return result;
-        }
-
-        public Matrix subtract(Matrix mtr) throws Exception {
-            if (lines != mtr.getLines() || columns != mtr.getColumns()) {
-                throw new Exception("Неверная матрица.");
-            }
-            Matrix result = new Matrix(lines, columns);
-            for (int i = 0; i < lines; i++) {
-                for (int j = 0; j < columns; j++) {
-                    result.matrix[i][j] = this.matrix[i][j] - mtr.matrix[i][j];
-                }
-            }
-            return result;
-        }
-
-        public Matrix transpose() throws Exception {
-            if (lines != columns) {
-                throw new Exception("Неверная матрица.");
-            }
-            Matrix result = new Matrix(this);
-            for (int i = 0; i < lines; i++) {
-                for (int j = i + 1; j < columns; j++) {
-                    result.swap(i, j, j, i);
-                }
-            }
-            return result;
-        }
     }
 
     private static class Vector {
         public double[] vector;
         private int length;
-
-        public Vector() {
-            this.length = 0;
-            this.vector = null;
-        }
 
         public Vector(int length) throws Exception {
             if (length < 1) {
@@ -197,13 +51,6 @@ public class Main {
             }
             this.length = length;
             vector = new double[length];
-        }
-
-        public Vector(Vector init) {
-            this.length = init.getLength();
-            for (int i = 0; i < length; i++) {
-                this.vector[i] = init.vector[i];
-            }
         }
 
         public int getLength() {
@@ -218,12 +65,6 @@ public class Main {
                     System.out.printf("%.5f\n", item);
                 }
             }
-        }
-
-        public void swap(int i, int j) {
-            double tmp = vector[i];
-            vector[i] = vector[j];
-            vector[j] = tmp;
         }
 
         public void fillDefault() {
