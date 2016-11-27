@@ -130,6 +130,7 @@ public class Main {
                 System.out.println("Вектор невязки R: ");
                 r.print(true);
                 System.out.println();
+                System.out.println("Норма вектора невязки ||R|| = " + r.normI());
             } else {
                 System.out.println("Метод Якоби непременим к данной матрице.");
             }
