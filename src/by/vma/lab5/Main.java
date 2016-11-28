@@ -26,6 +26,33 @@ public class Main {
             this.matrix = a;
         }
 
+        public void fillE() {
+            for (int i = 0; i < lines; i++) {
+                for (int j = 0; j < columns; j++) {
+                    if (i == j) {
+                        matrix[i][j] = 1;
+                    } else {
+                        matrix[i][j] = 0;
+                    }
+                }
+            }
+        }
+
+        public double normI() {
+            double maxSum = -1;
+            double sum;
+            for (int i = 0; i < lines; i++) {
+                sum = 0;
+                for (int j = 0; j < columns; j++) {
+                    sum += Math.abs(matrix[i][j]);
+                }
+                if (sum > maxSum) {
+                    maxSum = sum;
+                }
+            }
+            return maxSum;
+        }
+
         public Vector mul(Vector vector) throws Exception {
             if (columns != vector.getLength()) {
                 throw new Exception("Неверная матрица или вектор.");
@@ -35,6 +62,26 @@ public class Main {
                 result.vector[i] = 0;
                 for (int j = 0; j < columns; j++) {
                     result.vector[i] += matrix[i][j] * vector.vector[j];
+                }
+            }
+            return result;
+        }
+
+        public Matrix mul(double num) throws Exception {
+            Matrix result = new Matrix(lines, columns);
+            for(int i = 0; i < lines; i++) {
+                for(int j = 0; j < columns; j++) {
+                    result.matrix[i][j] = this.matrix[i][j] * num;
+                }
+            }
+            return result;
+        }
+
+        public Matrix subtract(Matrix mtr) throws Exception {
+            Matrix result = new Matrix(lines, columns);
+            for (int i = 0; i < lines; i++) {
+                for (int j = 0; j < columns; j++) {
+                    result.matrix[i][j] = this.matrix[i][j] - mtr.matrix[i][j];
                 }
             }
             return result;
@@ -91,13 +138,10 @@ public class Main {
             return result;
         }
 
-        public Vector add(Vector second) throws Exception {
-            if (length != second.getLength()) {
-                throw new Exception("Неверный вектор.");
-            }
+        public Vector mul(double num) throws Exception {
             Vector result = new Vector(length);
             for (int i = 0; i < length; i++) {
-                result.vector[i] = this.vector[i] + second.vector[i];
+                result.vector[i] = this.vector[i] * num;
             }
             return result;
         }
@@ -114,9 +158,7 @@ public class Main {
     }
 
     private static Matrix A;
-    private static Matrix B;
     private static Vector b;
-    private static Vector g;
     private static int n = 5;
     private static double epsilon = 0.00001;
 
@@ -128,18 +170,32 @@ public class Main {
             b = new Vector(n);
             A.fillDefault();
             b.fillDefault();
-            if (isMethodJacobiConverges()) {
-                x = methodJacobi();
-                System.out.println("Вектор X: ");
+            x = methodJacobi();
+            if (x != null) {
+                System.out.println("Вектор X(Метод Якоби): ");
                 x.print(false);
                 System.out.println();
                 r = A.mul(x).subtract(b);
-                System.out.println("Вектор невязки R: ");
+                System.out.println("Вектор невязки R(Метод Якоби): ");
                 r.print(true);
                 System.out.println();
-                System.out.println("Норма вектора невязки ||R|| = " + r.normI());
+                System.out.println("Норма вектора невязки ||R||(Метод Якоби) = " + r.normI());
             } else {
                 System.out.println("Метод Якоби непременим к данной матрице.");
+            }
+            System.out.println();
+            x = methodSeidel();
+            if (x != null) {
+                System.out.println("Вектор X(Метод Зейделя): ");
+                x.print(false);
+                System.out.println();
+                r = A.mul(x).subtract(b);
+                System.out.println("Вектор невязки R(Метод Зейделя): ");
+                r.print(true);
+                System.out.println();
+                System.out.println("Норма вектора невязки ||R||(Метод Зейделя) = " + r.normI());
+            } else {
+                System.out.println("Метод Зейделя непременим к данной матрице.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -148,26 +204,41 @@ public class Main {
 
     private static Vector methodJacobi() throws Exception {
         Vector prevX;
-        Vector nextX;
-        fillBandG();
-        nextX = g;
-        do {
-            prevX = new Vector(nextX);
-            nextX = B.mul(prevX).add(g);
-        } while (nextX.subtract(prevX).normI() > epsilon);
-        return nextX;
-    }
-
-    private static void fillBandG() throws Exception {
-        B = new Matrix(n, n);
-        g = new Vector(n);
+        Vector nextX = new Vector(n);
+        Matrix B = new Matrix(n, n);
+        int counter = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 if (i != j) {
-                    B.matrix[i][j] = -A.matrix[i][j] / A.matrix[i][i];
+                    B.matrix[i][j] = - A.matrix[i][j] / A.matrix[i][i];
+                } else {
+                    B.matrix[i][j] = 0;
                 }
             }
-            g.vector[i] = b.vector[i] / A.matrix[i][i];
+        }
+        if (isMethodJacobiConverges()) {
+            for (int i = 0; i < n; i++) {
+                nextX.vector[i] = b.vector[i] / A.matrix[i][i];
+            }
+            do {
+                prevX = new Vector(nextX);
+                for (int i = 0; i < n; i++) {
+                    nextX.vector[i] = b.vector[i] / A.matrix[i][i];
+                    for (int j = 0; j < n; j++) {
+                        if (i != j) {
+                            nextX.vector[i] -= (A.matrix[i][j] / A.matrix[i][i]) * prevX.vector[j];
+                        }
+                    }
+                }
+                counter++;
+            } while (nextX.subtract(prevX).normI() > epsilon);
+            System.out.println("Априорная оценка метода Якоби: " +
+                    ((int)((Math.log(epsilon * (1 - B.normI()) / b.normI())) / Math.log(B.normI())) + 1));
+            System.out.println("Количество итераций в методе Якоби: " + counter);
+            System.out.println();
+            return nextX;
+        } else {
+            return null;
         }
     }
 
@@ -194,7 +265,7 @@ public class Main {
         sum = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                if(i != j) {
+                if (i != j) {
                     sum += Math.pow(A.matrix[i][j] / A.matrix[i][i], 2);
                 }
             }
@@ -204,5 +275,61 @@ public class Main {
         } else {
             return false;
         }
+    }
+
+    private static Vector methodSeidel() throws Exception {
+        double tetta = 1 / A.normI();
+        int counter = 0;
+        Vector g = b.mul(tetta);
+        Vector prevX;
+        Vector nextX = new Vector(g);
+        Matrix B = new Matrix(n, n);
+        B.fillE();
+        B = B.subtract(A.mul(tetta));
+        if (isMethodSeidelConverges(B)) {
+            do {
+                prevX = new Vector(nextX);
+                for (int i = 0; i < n; i++) {
+                    nextX.vector[i] = g.vector[i];
+                    for (int j = 0; j < i; j++) {
+                        nextX.vector[i] += B.matrix[i][j] * nextX.vector[j];
+                    }
+                    for(int j = i; j < n; j++) {
+                        nextX.vector[i] += B.matrix[i][j] * prevX.vector[j];
+                    }
+                }
+                counter++;
+            } while (nextX.subtract(prevX).normI() > epsilon);
+            System.out.println("Априорная оценка метода Зейделя: " +
+                    ((int)((Math.log(epsilon * (1 - B.normI()) / g.normI())) / Math.log(B.normI())) + 1));
+            System.out.println("Количество итераций в методе Зейделя: " + counter);
+            System.out.println();
+            return nextX;
+        } else {
+            return null;
+        }
+    }
+
+    private static boolean isMethodSeidelConverges(Matrix B) {
+        double sum;
+        for (int i = 0; i < n; i++) {
+            sum = 0;
+            for (int j = 0; j < n; j++) {
+                sum += Math.abs(B.matrix[i][j]);
+            }
+            if (sum < 1) {
+                return true;
+            }
+        }
+        for (int j = 0; j < n; j++) {
+            sum = 0;
+            for (int i = 0; i < n; i++) {
+                sum += Math.abs(B.matrix[i][j]);
+            }
+            if (sum < 1) {
+                return true;
+            }
+        }
+        return false;
     }
 }
