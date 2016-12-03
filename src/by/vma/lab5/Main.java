@@ -171,32 +171,8 @@ public class Main {
             A.fillDefault();
             b.fillDefault();
             x = methodJacobi();
-            if (x != null) {
-                System.out.println("Вектор X(Метод Якоби): ");
-                x.print(false);
-                System.out.println();
-                r = A.mul(x).subtract(b);
-                System.out.println("Вектор невязки R(Метод Якоби): ");
-                r.print(true);
-                System.out.println();
-                System.out.println("Норма вектора невязки ||R||(Метод Якоби) = " + r.normI());
-            } else {
-                System.out.println("Метод Якоби непременим к данной матрице.");
-            }
             System.out.println();
             x = methodSeidel();
-            if (x != null) {
-                System.out.println("Вектор X(Метод Зейделя): ");
-                x.print(false);
-                System.out.println();
-                r = A.mul(x).subtract(b);
-                System.out.println("Вектор невязки R(Метод Зейделя): ");
-                r.print(true);
-                System.out.println();
-                System.out.println("Норма вектора невязки ||R||(Метод Зейделя) = " + r.normI());
-            } else {
-                System.out.println("Метод Зейделя непременим к данной матрице.");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -232,9 +208,26 @@ public class Main {
                 }
                 counter++;
             } while (nextX.subtract(prevX).normI() > epsilon);
+            System.out.println("Вектор X(Метод Якоби): ");
+            nextX.print(false);
+            System.out.println();
+            for(int i = 0; i < n; i++) {
+                prevX.vector[i] = b.vector[i] / A.matrix[i][i];
+                prevX.vector[i] -= nextX.vector[i];
+                for (int j = 0; j < n; j++) {
+                    if (i != j) {
+                        prevX.vector[i] -= (A.matrix[i][j] / A.matrix[i][i]) * nextX.vector[j];
+                    }
+                }
+            }
             System.out.println("Априорная оценка метода Якоби: " +
                     ((int)((Math.log(epsilon * (1 - B.normI()) / b.normI())) / Math.log(B.normI())) + 1));
             System.out.println("Количество итераций в методе Якоби: " + counter);
+            System.out.println();
+            System.out.println("Вектор невязки R(Метод Якоби): ");
+            prevX.print(true);
+            System.out.println();
+            System.out.println("Норма вектора невязки ||R||(Метод Якоби) = " + prevX.normI());
             System.out.println();
             return nextX;
         } else {
@@ -300,9 +293,22 @@ public class Main {
                 }
                 counter++;
             } while (nextX.subtract(prevX).normI() > epsilon);
-            System.out.println("Априорная оценка метода Зейделя: " +
-                    ((int)((Math.log(epsilon * (1 - B.normI()) / g.normI())) / Math.log(B.normI())) + 1));
+            System.out.println("Вектор X(Метод Зейделя): ");
+            nextX.print(false);
+            System.out.println();
+            for(int i = 0; i < n; i++) {
+                prevX.vector[i] = g.vector[i];
+                prevX.vector[i] -= nextX.vector[i];
+                for (int j = 0; j < n; j++) {
+                    prevX.vector[i] += B.matrix[i][j] * nextX.vector[j];
+                }
+            }
             System.out.println("Количество итераций в методе Зейделя: " + counter);
+            System.out.println();
+            System.out.println("Вектор невязки R(Метод Зейделя): ");
+            prevX.print(true);
+            System.out.println();
+            System.out.println("Норма вектора невязки ||R||(Метод Зейделя) = " + prevX.normI());
             System.out.println();
             return nextX;
         } else {
